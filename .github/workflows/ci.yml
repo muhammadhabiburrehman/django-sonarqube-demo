@@ -1,7 +1,10 @@
-name: CI with SonarQube and Trivy
+name: PR CI with SonarQube and Trivy
 
+# Trigger workflow on pull requests targeting main
 on:
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main  # Target branch for merge
 
 jobs:
   sonarqube:
@@ -9,6 +12,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v2
