@@ -28,6 +28,11 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+SECRET_KEY = 'django-insecure-hardcoded-secret-key-123456'  # BAD
+DATABASE_PASSWORD = 'mypassword123'  # BAD
+API_KEY = 'sk-1234567890abcdef'  # BAD
+
+
 # Application definition
 
 INSTALLED_APPS = [
