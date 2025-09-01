@@ -1,16 +1,15 @@
-name: CI with SonarQube
+name: CI with SonarQube and Trivy
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  sonarqube:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
+
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v2
         with:
@@ -27,3 +26,16 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Trivy Scan
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
