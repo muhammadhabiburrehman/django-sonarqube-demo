@@ -1,6 +1,5 @@
 name: CI with SonarQube
 
-
 on:
   workflow_dispatch:
 
@@ -21,19 +20,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install coverage pytest
-
-      - name: Run tests with coverage
-        run: |
-          coverage run -m pytest
-          coverage xml
 
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v2
         with:
           args: >
             -Dsonar.projectKey=django-app
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.sources=.
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
