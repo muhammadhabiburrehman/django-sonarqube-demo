@@ -1,3 +1,4 @@
 Django>=4.2
 coverage
 pytest
+setuptools>=78.1.1

@@ -55,10 +55,39 @@ jobs:
       - name: Verify Docker image exists
         run: docker images django-app:latest
         
-      - name: Run Trivy Scan
+      - name: Run Trivy Scan (Zero Tolerance)
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: django-app:latest
           format: table
           severity: HIGH,CRITICAL
           vuln-type: os,library
+          scanners: vuln,secret,misconfig  # Scan for vulnerabilities, secrets, and misconfigurations
+          exit-code: 1  # Fail the pipeline if any issues found
+          
+      - name: Run Trivy Scan (All Severities Check)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: django-app:latest
+          format: table
+          severity: MEDIUM,HIGH,CRITICAL
+          vuln-type: os,library
+          scanners: vuln,secret,misconfig
+        continue-on-error: true  # Don't fail but show warnings
+          
+      - name: Run Trivy Scan (All Severities for Review)
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: django-app:latest
+          format: json
+          output: trivy-results.json
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          vuln-type: os,library
+        continue-on-error: true
+        
+      - name: Upload Trivy scan results
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-results
+          path: trivy-results.json
+        if: always()
