@@ -1,5 +1,6 @@
-name: PR CI with SonarQube and Trivy
+name: CI with SonarQube and Trivy
 
+# Trigger workflow on push to main and pull requests targeting main
 on:
   push:
     branches:
@@ -41,19 +42,19 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-  # Job 2: Trivy scan of Docker image
+  # Job 2: Trivy Docker image scan
   trivy:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Build Docker image
-      run: docker build -t django-app .
+      - name: Build Docker image
+        run: docker build -t django-app .
 
-    - name: Run Trivy Scan
-      uses: aquasecurity/trivy-action@0.20.0
-      with:
-        scan-type: image
-        scan-ref: django-app:latest
-        severity: HIGH,CRITICAL
+      - name: Run Trivy Scan
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: image          # scan a Docker image
+          scan-ref: django-app:latest
+          severity: HIGH,CRITICAL
