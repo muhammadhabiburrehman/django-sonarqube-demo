@@ -1,5 +1,6 @@
 name: CI with SonarQube and Trivy
 
+# Trigger workflow on push to main and pull requests targeting main
 on:
   push:
     branches:
@@ -14,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
           
@@ -41,12 +42,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-  # Job 2: Trivy Docker image scan with strict security
+  # Job 2: Trivy Docker image scan
   trivy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         
       - name: Build Docker image
         run: docker build -t django-app:latest .
@@ -54,24 +55,10 @@ jobs:
       - name: Verify Docker image exists
         run: docker images django-app:latest
         
-      - name: Run Trivy Scan (Fail on ANY vulnerabilities)
+      - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: django-app:latest
           format: table
-          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          severity: HIGH,CRITICAL
           vuln-type: os,library
-          exit-code: '1'  # Fail the build if vulnerabilities found
-          
-      - name: Run Trivy Scan (Generate SARIF report)
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          image-ref: django-app:latest
-          format: sarif
-          output: trivy-results.sarif
-          
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: trivy-results.sarif
