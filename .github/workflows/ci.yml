@@ -16,15 +16,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-
+          
       - name: Install dependencies
         run: pip install -r requirements.txt
-
+        
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v2
         with:
@@ -34,7 +34,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
+          
       - name: Enforce Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@v1
         timeout-minutes: 5
@@ -48,13 +48,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
+        
       - name: Build Docker image
-        run: docker build -t django-app .
-
+        run: docker build -t django-app:latest .
+        
+      - name: Verify Docker image exists
+        run: docker images django-app:latest
+        
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          scan-type: image          # scan a Docker image
-          scan-ref: django-app
+          image-ref: django-app:latest
+          format: table
           severity: HIGH,CRITICAL
+          vuln-type: os,library
