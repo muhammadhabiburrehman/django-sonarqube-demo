@@ -1,6 +1,5 @@
 name: CI with SonarQube and Trivy
 
-# Trigger workflow on push to main and pull requests targeting main
 on:
   push:
     branches:
@@ -42,12 +41,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-  # Job 2: Trivy Docker image scan
+  # Job 2: Trivy Docker image scan with strict security
   trivy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Build Docker image
         run: docker build -t django-app:latest .
@@ -55,39 +54,24 @@ jobs:
       - name: Verify Docker image exists
         run: docker images django-app:latest
         
-      - name: Run Trivy Scan (Zero Tolerance)
+      - name: Run Trivy Scan (Fail on ANY vulnerabilities)
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: django-app:latest
           format: table
-          severity: HIGH,CRITICAL
-          vuln-type: os,library
-          scanners: vuln,secret,misconfig  # Scan for vulnerabilities, secrets, and misconfigurations
-          exit-code: 1  # Fail the pipeline if any issues found
-          
-      - name: Run Trivy Scan (All Severities Check)
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          image-ref: django-app:latest
-          format: table
-          severity: MEDIUM,HIGH,CRITICAL
-          vuln-type: os,library
-          scanners: vuln,secret,misconfig
-        continue-on-error: true  # Don't fail but show warnings
-          
-      - name: Run Trivy Scan (All Severities for Review)
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          image-ref: django-app:latest
-          format: json
-          output: trivy-results.json
           severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
           vuln-type: os,library
-        continue-on-error: true
-        
-      - name: Upload Trivy scan results
-        uses: actions/upload-artifact@v3
+          exit-code: '1'  # Fail the build if vulnerabilities found
+          
+      - name: Run Trivy Scan (Generate SARIF report)
+        uses: aquasecurity/trivy-action@0.20.0
         with:
-          name: trivy-results
-          path: trivy-results.json
+          image-ref: django-app:latest
+          format: sarif
+          output: trivy-results.sarif
+          
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
+        with:
+          sarif_file: trivy-results.sarif
