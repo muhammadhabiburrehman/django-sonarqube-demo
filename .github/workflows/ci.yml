@@ -56,5 +56,5 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0
         with:
           scan-type: image          # scan a Docker image
-          scan-ref: django-app:latest
+          scan-ref: django-app
           severity: HIGH,CRITICAL
