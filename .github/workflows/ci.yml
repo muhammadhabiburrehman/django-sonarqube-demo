@@ -1,12 +1,12 @@
 name: PR CI with SonarQube and Trivy
 
-# Trigger workflow on pull requests targeting main
 on:
   pull_request:
     branches:
-      - main  # Target branch for merge
+      - main
 
 jobs:
+  # Job 1: SonarQube scan
   sonarqube:
     runs-on: ubuntu-latest
     steps:
@@ -19,8 +19,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@v2
@@ -39,15 +38,20 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+  # Job 2: Trivy scan of Docker image
   trivy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Build Docker image
+        run: |
+          docker build -t django-app .
+
       - name: Run Trivy Scan
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          scan-type: fs
-          scan-ref: .
+          scan-type: image
+          scan-ref: django-app:latest
           severity: HIGH,CRITICAL
