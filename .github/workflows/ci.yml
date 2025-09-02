@@ -43,18 +43,17 @@ jobs:
 
   # Job 2: Trivy scan of Docker image
   trivy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Build Docker image
-        run: |
-          docker build -t django-app .
+    - name: Build Docker image
+      run: docker build -t django-app .
 
-      - name: Run Trivy Scan
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          scan-type: image
-          scan-ref: django-app:latest
-          severity: HIGH,CRITICAL
+    - name: Run Trivy Scan
+      uses: aquasecurity/trivy-action@0.20.0
+      with:
+        scan-type: image
+        scan-ref: django-app:latest
+        severity: HIGH,CRITICAL
